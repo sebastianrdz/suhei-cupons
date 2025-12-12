@@ -69,6 +69,23 @@ export const coupons: Coupon[] = [
     description:
       "Vamos a ver una película, no importa cuál, no importa dónde. Lo importante es estar juntos y disfrutar del cine.",
   },
+  {
+    id: "legos-date",
+    category: "Actividades",
+    title: "Unos legos y ver la f1 uffff",
+    subtitle: "y si construimos un carro de la formula 1 👀",
+    description:
+      "Vamos a construir algo juntos, no importa cuál sea la pieza, no importa cuánto tiempo tarde. Lo importante es estar juntos y disfrutar del juego.",
+    special: true,
+  },
+  {
+    id: "luzes-obispado",
+    category: "Actividades",
+    title: "Las Luzes del Obispado jeje🌌",
+    subtitle: "Aprovechar la temporada navideña",
+    description:
+      "Vamos a ver las luces del obispado, caminar un poco, comer algo rico y disfrutar de la navidad.",
+  },
 
   // Comida
   {
@@ -168,6 +185,15 @@ export const coupons: Coupon[] = [
     subtitle: "Nive y el anochecer.",
     description:
       "Vamos por helado y vemos el anochecer.",
+  },
+  {
+    id: "cookies",
+    category: "Comida",
+    title: "Galletas NY 🍪",
+    subtitle: "Unas asi bien buenas como las de NY",
+    description:
+      "Vamos a hacer unas muy buenas galletas jejeje.",
+    special: true,
   },
 
   // Extras
