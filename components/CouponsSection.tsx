@@ -38,6 +38,10 @@ export default function CouponsSection({ coupons, showBackButton = false }: Coup
 
   const isRedeemed = (id: string) => redeemedSet.has(id);
 
+  const handleImagesUpdated = (couponId: string, urls: string[]) => {
+    setSelectedCoupon((prev) => (prev?.id === couponId ? { ...prev, image_urls: urls } : prev));
+  };
+
   const handleToggleRedeemed = async (couponId: string) => {
     const newRedeemed = !redeemedSet.has(couponId);
     setRedeemedSet((prev) => {
@@ -50,9 +54,15 @@ export default function CouponsSection({ coupons, showBackButton = false }: Coup
     router.refresh();
   };
 
-  const filtered = selectedFilter === "Todos"
+  const filtered = (selectedFilter === "Todos"
     ? coupons
-    : coupons.filter((c) => c.category === selectedFilter);
+    : coupons.filter((c) => c.category === selectedFilter)
+  ).slice().sort((a, b) => {
+    const aRedeemed = isRedeemed(a.id);
+    const bRedeemed = isRedeemed(b.id);
+    if (aRedeemed !== bRedeemed) return aRedeemed ? 1 : -1;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   const redeemedCount = coupons.filter((c) => isRedeemed(c.id)).length;
 
@@ -173,6 +183,7 @@ export default function CouponsSection({ coupons, showBackButton = false }: Coup
             isRedeemed={isRedeemed(selectedCoupon.id)}
             onClose={() => setSelectedCoupon(null)}
             onToggleRedeemed={() => handleToggleRedeemed(selectedCoupon.id)}
+            onImagesUpdated={handleImagesUpdated}
           />
         )}
       </AnimatePresence>

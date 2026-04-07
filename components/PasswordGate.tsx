@@ -22,12 +22,12 @@ interface PasswordGateProps {
 }
 
 const petals = [
-  { left: "8%",  animDelay: "0s",    animDuration: "9s"  },
-  { left: "22%", animDelay: "1.4s",  animDuration: "11s" },
-  { left: "38%", animDelay: "0.6s",  animDuration: "8s"  },
-  { left: "55%", animDelay: "2.1s",  animDuration: "10s" },
-  { left: "70%", animDelay: "0.3s",  animDuration: "12s" },
-  { left: "85%", animDelay: "1.7s",  animDuration: "9s"  },
+  { left: "8%", animDelay: "0s", animDuration: "9s" },
+  { left: "22%", animDelay: "1.4s", animDuration: "11s" },
+  { left: "38%", animDelay: "0.6s", animDuration: "8s" },
+  { left: "55%", animDelay: "2.1s", animDuration: "10s" },
+  { left: "70%", animDelay: "0.3s", animDuration: "12s" },
+  { left: "85%", animDelay: "1.7s", animDuration: "9s" },
 ];
 
 function TimeUnit({ value, label }: { value: number; label: string }) {
@@ -44,7 +44,10 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
       >
         {String(value).padStart(2, "0")}
       </div>
-      <span className="font-sans text-[10px] uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+      <span
+        className="font-sans text-[10px] uppercase tracking-widest"
+        style={{ color: "var(--text-muted)" }}
+      >
         {label}
       </span>
     </div>
@@ -53,7 +56,10 @@ function TimeUnit({ value, label }: { value: number; label: string }) {
 
 export default function PasswordGate({ onSuccess }: PasswordGateProps) {
   const [phase, setPhase] = useState<Phase | null>(null);
-  const [timeLeft, setTimeLeft] = useState(Math.max(0, UNLOCK_TIME - Date.now()));
+  // eslint-disable-next-line react-hooks/purity
+  const [timeLeft, setTimeLeft] = useState(
+    Math.max(0, UNLOCK_TIME - Date.now()),
+  );
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [shaking, setShaking] = useState(false);
@@ -97,12 +103,46 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
     confettiFired.current = true;
 
     const burst = (opts: confetti.Options) =>
-      confetti({ colors: ["#EC4899", "#F9A8D4", "#FBCFE8", "#8B5CF6", "#DDD6FE", "#FDE68A"], ...opts });
+      confetti({
+        colors: [
+          "#EC4899",
+          "#F9A8D4",
+          "#FBCFE8",
+          "#8B5CF6",
+          "#DDD6FE",
+          "#FDE68A",
+        ],
+        ...opts,
+      });
 
-    setTimeout(() => burst({ particleCount: 220, spread: 110, origin: { y: 0.45 } }), 400);
-    setTimeout(() => burst({ particleCount: 120, spread: 70, angle: 60,  origin: { x: 0, y: 0.6 } }), 900);
-    setTimeout(() => burst({ particleCount: 120, spread: 70, angle: 120, origin: { x: 1, y: 0.6 } }), 1100);
-    setTimeout(() => burst({ particleCount: 80,  spread: 50, origin: { y: 0.3 } }), 1800);
+    setTimeout(
+      () => burst({ particleCount: 220, spread: 110, origin: { y: 0.45 } }),
+      400,
+    );
+    setTimeout(
+      () =>
+        burst({
+          particleCount: 120,
+          spread: 70,
+          angle: 60,
+          origin: { x: 0, y: 0.6 },
+        }),
+      900,
+    );
+    setTimeout(
+      () =>
+        burst({
+          particleCount: 120,
+          spread: 70,
+          angle: 120,
+          origin: { x: 1, y: 0.6 },
+        }),
+      1100,
+    );
+    setTimeout(
+      () => burst({ particleCount: 80, spread: 50, origin: { y: 0.3 } }),
+      1800,
+    );
 
     setTimeout(() => setShowContinue(true), 2800);
   }, [phase]);
@@ -126,15 +166,18 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
     }
   };
 
-  const days    = Math.floor(timeLeft / 86_400_000);
-  const hours   = Math.floor((timeLeft % 86_400_000) / 3_600_000);
-  const minutes = Math.floor((timeLeft % 3_600_000)  / 60_000);
-  const seconds = Math.floor((timeLeft % 60_000)     / 1_000);
+  const days = Math.floor(timeLeft / 86_400_000);
+  const hours = Math.floor((timeLeft % 86_400_000) / 3_600_000);
+  const minutes = Math.floor((timeLeft % 3_600_000) / 60_000);
+  const seconds = Math.floor((timeLeft % 60_000) / 1_000);
 
   return (
     <div
       className="relative min-h-screen flex items-center justify-center overflow-hidden p-4"
-      style={{ background: "linear-gradient(150deg, #FFF0F7 0%, #FCE7F3 45%, #EDE9FE 100%)" }}
+      style={{
+        background:
+          "linear-gradient(150deg, #FFF0F7 0%, #FCE7F3 45%, #EDE9FE 100%)",
+      }}
     >
       <MusicToggle />
 
@@ -154,13 +197,16 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
       ))}
 
       {/* Glow blobs */}
-      <div className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full pointer-events-none blur-[80px]"
-        style={{ background: "rgba(249,168,212,0.25)" }} />
-      <div className="absolute bottom-1/3 left-1/4 w-56 h-56 rounded-full pointer-events-none blur-[60px]"
-        style={{ background: "rgba(196,181,253,0.2)" }} />
+      <div
+        className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full pointer-events-none blur-[80px]"
+        style={{ background: "rgba(249,168,212,0.25)" }}
+      />
+      <div
+        className="absolute bottom-1/3 left-1/4 w-56 h-56 rounded-full pointer-events-none blur-[60px]"
+        style={{ background: "rgba(196,181,253,0.2)" }}
+      />
 
       <AnimatePresence mode="wait">
-
         {/* ── LOCKED: countdown ── */}
         {phase === "locked" && (
           <motion.div
@@ -180,12 +226,18 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
               🔒
             </motion.div>
 
-            <p className="font-sans text-xs uppercase tracking-[0.25em] mb-3" style={{ color: "var(--pink-light)" }}>
+            <p
+              className="font-sans text-xs uppercase tracking-[0.25em] mb-3"
+              style={{ color: "var(--pink-light)" }}
+            >
               Solo para ti
             </p>
             <h1
               className="font-display leading-none mb-5"
-              style={{ fontSize: "clamp(3rem,9vw,4.5rem)", color: "var(--text-head)" }}
+              style={{
+                fontSize: "clamp(3rem,9vw,4.5rem)",
+                color: "var(--text-head)",
+              }}
             >
               Para ti 💝
             </h1>
@@ -195,7 +247,10 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
             >
               Esperame tantito,
               <br />
-              <span style={{ color: "var(--pink)" }}>tu sorpresa aún no está lista</span> 🌸
+              <span style={{ color: "var(--pink)" }}>
+                tu sorpresa aún no está lista
+              </span>{" "}
+              🌸
             </p>
 
             {/* Countdown */}
@@ -208,18 +263,24 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
                 boxShadow: "0 8px 32px rgba(236,72,153,0.10)",
               }}
             >
-              <p className="font-sans text-xs uppercase tracking-widest mb-4" style={{ color: "var(--text-muted)" }}>
+              <p
+                className="font-sans text-xs uppercase tracking-widest mb-4"
+                style={{ color: "var(--text-muted)" }}
+              >
                 Disponible en
               </p>
               <div className="flex items-end justify-center gap-3">
-                {days > 0 && <TimeUnit value={days}    label="días"    />}
-                <TimeUnit value={hours}   label="horas"   />
-                <TimeUnit value={minutes} label="min"     />
-                <TimeUnit value={seconds} label="seg"     />
+                {days > 0 && <TimeUnit value={days} label="días" />}
+                <TimeUnit value={hours} label="horas" />
+                <TimeUnit value={minutes} label="min" />
+                <TimeUnit value={seconds} label="seg" />
               </div>
             </div>
 
-            <p className="font-serif text-sm" style={{ color: "var(--text-muted)" }}>
+            <p
+              className="font-serif text-sm"
+              style={{ color: "var(--text-muted)" }}
+            >
               Vuelve el 8 de Abril a las 7 PM 💕
             </p>
           </motion.div>
@@ -249,10 +310,14 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.7 }}
               className="font-display leading-tight mb-4"
-              style={{ fontSize: "clamp(2.8rem, 8vw, 4.2rem)", color: "var(--text-head)" }}
+              style={{
+                fontSize: "clamp(2.8rem, 8vw, 4.2rem)",
+                color: "var(--text-head)",
+              }}
             >
               Felices 5 meses
-              <br />juntos baby 💕
+              <br />
+              juntos baby 💕
             </motion.h1>
 
             <motion.p
@@ -264,7 +329,9 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
             >
               Disfruta esta nueva actualización
               <br />
-              <span style={{ color: "var(--pink)" }}>hecha con todo mi amor para ti.</span>
+              <span style={{ color: "var(--pink)" }}>
+                hecha con todo mi amor para ti.
+              </span>
             </motion.p>
 
             <AnimatePresence>
@@ -278,7 +345,8 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
                   onClick={handleCelebrationDone}
                   className="px-10 py-4 rounded-2xl font-serif text-lg font-semibold cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
                   style={{
-                    background: "linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%)",
+                    background:
+                      "linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%)",
                     color: "#fff",
                     boxShadow: "0 8px 28px rgba(236,72,153,0.35)",
                   }}
@@ -302,41 +370,57 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
           >
             <div className="text-center mb-8">
               <motion.p
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
                 className="font-sans text-xs uppercase tracking-[0.25em] mb-3"
                 style={{ color: "var(--pink-light)" }}
               >
                 Solo para ti
               </motion.p>
               <motion.h1
-                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
                 className="font-display leading-none mb-4"
-                style={{ fontSize: "clamp(3.5rem,10vw,5rem)", color: "var(--text-head)" }}
+                style={{
+                  fontSize: "clamp(3.5rem,10vw,5rem)",
+                  color: "var(--text-head)",
+                }}
               >
                 Para ti 💝
               </motion.h1>
               <motion.p
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.6 }}
                 className="font-serif text-lg leading-relaxed"
                 style={{ color: "var(--text-muted)" }}
               >
                 Un pequeño mundo de momentos
-                <br />que quiero vivir contigo.
+                <br />
+                que quiero vivir contigo.
               </motion.p>
             </div>
 
             <motion.div
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
               className="bg-white rounded-3xl p-8"
               style={{
                 border: "1.5px solid var(--border)",
-                boxShadow: "0 20px 60px rgba(236,72,153,0.10), 0 4px 16px rgba(236,72,153,0.07)",
+                boxShadow:
+                  "0 20px 60px rgba(236,72,153,0.10), 0 4px 16px rgba(236,72,153,0.07)",
               }}
             >
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div>
-                  <label htmlFor="password" className="block font-serif text-base text-center mb-3"
-                    style={{ color: "var(--text-body)" }}>
+                  <label
+                    htmlFor="password"
+                    className="block font-serif text-base text-center mb-3"
+                    style={{ color: "var(--text-body)" }}
+                  >
                     Ingresa nuestra fecha especial
                   </label>
                   <motion.input
@@ -346,7 +430,10 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
                     pattern="[0-9]*"
                     maxLength={6}
                     value={password}
-                    onChange={(e) => { setPassword(e.target.value.replace(/\D/g, "")); setError(""); }}
+                    onChange={(e) => {
+                      setPassword(e.target.value.replace(/\D/g, ""));
+                      setError("");
+                    }}
                     animate={shaking ? { x: [-8, 8, -6, 6, -3, 3, 0] } : {}}
                     transition={{ duration: 0.45 }}
                     className="w-full px-5 py-4 rounded-2xl text-center text-3xl tracking-[0.5em] font-sans transition-all duration-200 focus:outline-none"
@@ -355,8 +442,12 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
                       border: "1.5px solid var(--border)",
                       color: "var(--text-head)",
                     }}
-                    onFocus={e => (e.target.style.borderColor = "var(--pink)")}
-                    onBlur={e => (e.target.style.borderColor = "var(--border)")}
+                    onFocus={(e) =>
+                      (e.target.style.borderColor = "var(--pink)")
+                    }
+                    onBlur={(e) =>
+                      (e.target.style.borderColor = "var(--border)")
+                    }
                     placeholder="••••••"
                     autoFocus
                   />
@@ -365,7 +456,9 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
                 <AnimatePresence>
                   {error && (
                     <motion.p
-                      initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
                       className="font-serif text-sm text-center"
                       style={{ color: "var(--pink)" }}
                     >
@@ -378,7 +471,8 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
                   type="submit"
                   className="w-full py-4 rounded-2xl font-serif text-lg font-semibold transition-all duration-200 cursor-pointer hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
                   style={{
-                    background: "linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%)",
+                    background:
+                      "linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%)",
                     color: "#fff",
                     boxShadow: "0 6px 24px rgba(236,72,153,0.30)",
                   }}
@@ -389,7 +483,9 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
             </motion.div>
 
             <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.1 }}
               className="text-center font-serif text-sm mt-5"
               style={{ color: "var(--text-muted)" }}
             >
@@ -397,7 +493,6 @@ export default function PasswordGate({ onSuccess }: PasswordGateProps) {
             </motion.p>
           </motion.div>
         )}
-
       </AnimatePresence>
     </div>
   );

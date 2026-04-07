@@ -94,3 +94,29 @@ insert into public.coupons (id, category, title, subtitle, description, special,
 -- ────────────────────────────────────────────────
 -- alter table public.coupons add column if not exists redeemed boolean not null default false;
 -- create policy "Guest update redeemed" on public.coupons for update to anon using (true) with check (true);
+
+-- ────────────────────────────────────────────────
+-- Migration: coupon images (run in Supabase SQL editor)
+-- ────────────────────────────────────────────────
+-- 1. Add image_urls column
+-- alter table public.coupons add column if not exists image_urls text[] not null default '{}';
+
+-- 2. Create public storage bucket
+-- insert into storage.buckets (id, name, public) values ('coupon-images', 'coupon-images', true)
+--   on conflict (id) do nothing;
+
+-- 3. Storage RLS policies
+-- create policy "Public read coupon images"
+--   on storage.objects for select
+--   to anon, authenticated
+--   using (bucket_id = 'coupon-images');
+
+-- create policy "Anyone upload coupon images"
+--   on storage.objects for insert
+--   to anon, authenticated
+--   with check (bucket_id = 'coupon-images');
+
+-- create policy "Admin delete coupon images"
+--   on storage.objects for delete
+--   to authenticated
+--   using (bucket_id = 'coupon-images');

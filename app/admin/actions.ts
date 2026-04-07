@@ -16,6 +16,9 @@ async function requireAdmin() {
 export async function createCoupon(formData: FormData) {
   const supabase = await requireAdmin();
 
+  const imageUrls = [formData.get("image_url_0"), formData.get("image_url_1")]
+    .filter(Boolean) as string[];
+
   const { error } = await supabase.from("coupons").insert({
     id: formData.get("id") as string,
     category: formData.get("category") as string,
@@ -23,6 +26,7 @@ export async function createCoupon(formData: FormData) {
     subtitle: formData.get("subtitle") as string,
     description: formData.get("description") as string,
     special: formData.get("special") === "on",
+    image_urls: imageUrls,
   });
 
   if (error) throw new Error(error.message);
@@ -35,6 +39,9 @@ export async function createCoupon(formData: FormData) {
 export async function updateCoupon(id: string, formData: FormData) {
   const supabase = await requireAdmin();
 
+  const imageUrls = [formData.get("image_url_0"), formData.get("image_url_1")]
+    .filter(Boolean) as string[];
+
   const { error } = await supabase
     .from("coupons")
     .update({
@@ -43,6 +50,7 @@ export async function updateCoupon(id: string, formData: FormData) {
       subtitle: formData.get("subtitle") as string,
       description: formData.get("description") as string,
       special: formData.get("special") === "on",
+      image_urls: imageUrls,
     })
     .eq("id", id);
 
