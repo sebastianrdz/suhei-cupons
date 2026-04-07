@@ -1,19 +1,11 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import CouponsSection from "@/components/CouponsSection";
 
-export default function CouponsPage() {
-  const router = useRouter();
+export default async function CouponsPage() {
+  const supabase = await createClient();
+  const { data: coupons, error } = await supabase
+    .from("coupons")
+    .select("*");
 
-  useEffect(() => {
-    // Check if user has access
-    const hasAccess = localStorage.getItem("hasAccess");
-    if (hasAccess !== "true") {
-      router.push("/password");
-    }
-  }, [router]);
-
-  return <CouponsSection showBackButton={true} />;
+  return <CouponsSection coupons={coupons ?? []} showBackButton />;
 }

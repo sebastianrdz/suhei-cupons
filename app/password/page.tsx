@@ -7,9 +7,6 @@ export default function PasswordPage() {
   const router = useRouter();
 
   const handlePasswordSuccess = () => {
-    // Store access in localStorage
-    localStorage.setItem("hasAccess", "true");
-    // Navigate to landing page
     router.push("/landing");
   };
 

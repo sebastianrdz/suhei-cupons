@@ -3,16 +3,13 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import LandingHero from "@/components/LandingHero";
+import { hasValidAccess } from "@/lib/access";
 
 export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user has access
-    const hasAccess = localStorage.getItem("hasAccess");
-    if (hasAccess !== "true") {
-      router.push("/password");
-    }
+    if (!hasValidAccess()) router.push("/password");
   }, [router]);
 
   const handleEnter = () => {

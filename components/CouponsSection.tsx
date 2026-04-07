@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { coupons, CouponCategory, Coupon } from "@/data/coupons";
-import { useRedeemedCoupons } from "@/hooks/useRedeemedCoupons";
+import { CouponRow, CouponCategory } from "@/lib/supabase/types";
+import { toggleCouponRedeemed } from "@/app/actions";
+import { hasValidAccess } from "@/lib/access";
 import CouponCard from "./CouponCard";
 import CouponModal from "./CouponModal";
 import MusicToggle from "./MusicToggle";
@@ -12,134 +13,169 @@ import MusicToggle from "./MusicToggle";
 type FilterOption = "Todos" | CouponCategory;
 
 interface CouponsSectionProps {
+  coupons: CouponRow[];
   showBackButton?: boolean;
 }
 
-export default function CouponsSection({
-  showBackButton = false,
-}: CouponsSectionProps) {
+const filters: FilterOption[] = ["Todos", "Actividades", "Comida", "Extras"];
+
+export default function CouponsSection({ coupons, showBackButton = false }: CouponsSectionProps) {
   const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>("Todos");
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
-  const { isRedeemed, toggleRedeemed, isLoaded } = useRedeemedCoupons();
+  const [selectedCoupon, setSelectedCoupon] = useState<CouponRow | null>(null);
+  const [redeemedSet, setRedeemedSet] = useState<Set<string>>(
+    () => new Set(coupons.filter((c) => c.redeemed).map((c) => c.id))
+  );
 
-  const filters: FilterOption[] = ["Todos", "Actividades", "Comida", "Extras"];
+  useEffect(() => {
+    if (!hasValidAccess()) router.push("/password");
+  }, [router]);
 
-  const filteredCoupons =
-    selectedFilter === "Todos"
-      ? coupons
-      : coupons.filter((c) => c.category === selectedFilter);
+  // Sync local state when server re-renders with fresh data
+  useEffect(() => {
+    setRedeemedSet(new Set(coupons.filter((c) => c.redeemed).map((c) => c.id)));
+  }, [coupons]);
 
-  // Don't render until localStorage is loaded to avoid hydration mismatch
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-white text-xl">Cargando...</div>
-      </div>
-    );
-  }
+  const isRedeemed = (id: string) => redeemedSet.has(id);
+
+  const handleToggleRedeemed = async (couponId: string) => {
+    const newRedeemed = !redeemedSet.has(couponId);
+    setRedeemedSet((prev) => {
+      const next = new Set(prev);
+      if (newRedeemed) next.add(couponId);
+      else next.delete(couponId);
+      return next;
+    });
+    await toggleCouponRedeemed(couponId, newRedeemed);
+    router.refresh();
+  };
+
+  const filtered = selectedFilter === "Todos"
+    ? coupons
+    : coupons.filter((c) => c.category === selectedFilter);
+
+  const redeemedCount = coupons.filter((c) => isRedeemed(c.id)).length;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-900 via-purple-900 to-slate-900 py-16 px-4">
-      {/* Music toggle button */}
+    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <MusicToggle />
 
-      <div className="max-w-6xl mx-auto">
-        {/* Back button */}
-        {showBackButton && (
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            onClick={() => router.push("/landing")}
-            className="mb-8 flex items-center gap-2 text-purple-200 hover:text-white transition-colors cursor-pointer"
-          >
-            <span className="text-2xl">←</span>
-            <span>Volver</span>
-          </motion.button>
-        )}
+      {/* Sticky top bar */}
+      <div
+        className="sticky top-0 z-40 backdrop-blur-md px-5 py-3.5"
+        style={{ background: "rgba(253,242,248,0.85)", borderBottom: "1px solid var(--border)" }}
+      >
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          {showBackButton ? (
+            <button
+              onClick={() => router.push("/landing")}
+              className="flex items-center gap-1.5 font-serif text-sm transition-colors duration-150 cursor-pointer focus-visible:outline-none"
+              style={{ color: "var(--text-muted)" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "var(--pink)")}
+              onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 12H5M12 19l-7-7 7-7" />
+              </svg>
+              Volver
+            </button>
+          ) : <div />}
 
-        {/* Header */}
+          {/* Progress */}
+          <div
+            className="flex items-center gap-2 px-4 py-1.5 rounded-full font-sans text-sm"
+            style={{ background: "var(--pink-pale)", border: "1px solid var(--border)" }}
+          >
+            <span style={{ color: "var(--pink-dark)", fontFamily: "var(--font-cormorant)", fontSize: "1rem" }}>
+              {redeemedCount} / {coupons.length}
+            </span>
+            <span className="text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>canjeados</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
+        {/* Page header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}
           className="text-center mb-12"
         >
-          <h1 className="text-5xl md:text-6xl font-bold text-white mb-4">
-            Nuestros cupones de tiempo juntos
+          <p className="font-sans text-xs uppercase tracking-[0.25em] mb-3" style={{ color: "var(--pink-light)" }}>
+            Para ti, con amor
+          </p>
+          <h1
+            className="font-display leading-none mb-4"
+            style={{ fontSize: "clamp(2.8rem, 7vw, 5rem)", color: "var(--text-head)" }}
+          >
+            Nuestros cupones
           </h1>
-          <p className="text-xl text-purple-200">
+          <p className="font-serif text-lg max-w-md mx-auto leading-relaxed" style={{ color: "var(--text-muted)" }}>
             Elige el momento que quieras vivir conmigo 💕
           </p>
         </motion.div>
 
-        {/* Filters */}
+        {/* Filter tabs */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="flex flex-wrap justify-center gap-3 mb-12"
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
+          className="flex flex-wrap justify-center gap-2 mb-10"
         >
-          {filters.map((filter) => (
+          {filters.map((f) => (
             <button
-              key={filter}
-              onClick={() => setSelectedFilter(filter)}
-              className={`px-6 py-2 rounded-full font-semibold transition-all cursor-pointer ${
-                selectedFilter === filter
-                  ? "bg-white text-purple-900 shadow-lg scale-105"
-                  : "bg-white/20 text-white hover:bg-white/30 border border-white/30"
-              }`}
+              key={f}
+              onClick={() => setSelectedFilter(f)}
+              className="px-6 py-2.5 rounded-full font-serif text-sm font-semibold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
+              style={
+                selectedFilter === f
+                  ? { background: "linear-gradient(135deg, var(--pink), var(--pink-dark))", color: "#fff", boxShadow: "0 4px 14px rgba(236,72,153,0.28)" }
+                  : { background: "var(--surface)", color: "var(--text-muted)", border: "1.5px solid var(--border)" }
+              }
             >
-              {filter}
+              {f}
             </button>
           ))}
         </motion.div>
 
-        {/* Coupons grid */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {filteredCoupons.map((coupon, index) => (
-            <motion.div
-              key={coupon.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 * index }}
-            >
-              <CouponCard
-                coupon={coupon}
-                isRedeemed={isRedeemed(coupon.id)}
-                onClick={() => setSelectedCoupon(coupon)}
-              />
-            </motion.div>
-          ))}
+        {/* Grid */}
+        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <AnimatePresence mode="popLayout">
+            {filtered.map((coupon, i) => (
+              <motion.div
+                key={coupon.id}
+                layout
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ delay: Math.min(i * 0.04, 0.25), duration: 0.28 }}
+              >
+                <CouponCard
+                  coupon={coupon}
+                  isRedeemed={isRedeemed(coupon.id)}
+                  onClick={() => setSelectedCoupon(coupon)}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </motion.div>
 
-        {/* Empty state */}
-        {filteredCoupons.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center text-purple-200 text-xl mt-12"
-          >
-            No hay cupones en esta categoría
+        {filtered.length === 0 && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+            <p className="font-display" style={{ fontSize: "2.8rem", color: "var(--pink-light)" }}>Sin cupones aquí</p>
+            <p className="font-serif mt-2" style={{ color: "var(--text-muted)" }}>No hay cupones en esta categoría</p>
           </motion.div>
         )}
       </div>
 
       {/* Modal */}
-      {selectedCoupon && (
-        <CouponModal
-          coupon={selectedCoupon}
-          isRedeemed={isRedeemed(selectedCoupon.id)}
-          onClose={() => setSelectedCoupon(null)}
-          onToggleRedeemed={() => toggleRedeemed(selectedCoupon.id)}
-        />
-      )}
+      <AnimatePresence>
+        {selectedCoupon && (
+          <CouponModal
+            coupon={selectedCoupon}
+            isRedeemed={isRedeemed(selectedCoupon.id)}
+            onClose={() => setSelectedCoupon(null)}
+            onToggleRedeemed={() => handleToggleRedeemed(selectedCoupon.id)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

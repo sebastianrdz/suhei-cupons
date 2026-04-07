@@ -2,19 +2,15 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { hasValidAccess } from "@/lib/access";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Check if user has access
-    const hasAccess = localStorage.getItem("hasAccess");
-
-    if (hasAccess === "true") {
-      // If already authenticated, go to landing
+    if (hasValidAccess()) {
       router.push("/landing");
     } else {
-      // Otherwise, go to password page
       router.push("/password");
     }
   }, [router]);
