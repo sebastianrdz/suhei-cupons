@@ -8,6 +8,7 @@ import { toggleCouponRedeemed } from "@/app/actions";
 import { hasValidAccess } from "@/lib/access";
 import CouponCard from "./CouponCard";
 import CouponModal from "./CouponModal";
+import GalleryView from "./GalleryView";
 import MusicToggle from "./MusicToggle";
 
 type FilterOption = "Todos" | CouponCategory;
@@ -23,6 +24,7 @@ export default function CouponsSection({ coupons, showBackButton = false }: Coup
   const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>("Todos");
   const [selectedCoupon, setSelectedCoupon] = useState<CouponRow | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "gallery">("grid");
   const [redeemedSet, setRedeemedSet] = useState<Set<string>>(
     () => new Set(coupons.filter((c) => c.redeemed).map((c) => c.id))
   );
@@ -124,18 +126,18 @@ export default function CouponsSection({ coupons, showBackButton = false }: Coup
           </p>
         </motion.div>
 
-        {/* Filter tabs */}
+        {/* Filter tabs + gallery toggle */}
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.15 }}
-          className="flex flex-wrap justify-center gap-2 mb-10"
+          className="flex items-center justify-center gap-2 mb-10 flex-wrap"
         >
           {filters.map((f) => (
             <button
               key={f}
-              onClick={() => setSelectedFilter(f)}
+              onClick={() => { setSelectedFilter(f); setViewMode("grid"); }}
               className="px-6 py-2.5 rounded-full font-serif text-sm font-semibold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
               style={
-                selectedFilter === f
+                selectedFilter === f && viewMode === "grid"
                   ? { background: "linear-gradient(135deg, var(--pink), var(--pink-dark))", color: "#fff", boxShadow: "0 4px 14px rgba(236,72,153,0.28)" }
                   : { background: "var(--surface)", color: "var(--text-muted)", border: "1.5px solid var(--border)" }
               }
@@ -143,36 +145,81 @@ export default function CouponsSection({ coupons, showBackButton = false }: Coup
               {f}
             </button>
           ))}
+
+          {/* Separator */}
+          <div className="w-px h-6 mx-1 hidden sm:block" style={{ background: "var(--border)" }} />
+
+          {/* Gallery toggle */}
+          <button
+            onClick={() => setViewMode((v) => (v === "grid" ? "gallery" : "grid"))}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-full font-serif text-sm font-semibold transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-400"
+            style={
+              viewMode === "gallery"
+                ? { background: "linear-gradient(135deg, var(--pink), var(--pink-dark))", color: "#fff", boxShadow: "0 4px 14px rgba(236,72,153,0.28)" }
+                : { background: "var(--surface)", color: "var(--text-muted)", border: "1.5px solid var(--border)" }
+            }
+            aria-label="Ver galería de fotos"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Galería
+          </button>
         </motion.div>
 
-        {/* Grid */}
-        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          <AnimatePresence mode="popLayout">
-            {filtered.map((coupon, i) => (
-              <motion.div
-                key={coupon.id}
-                layout
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ delay: Math.min(i * 0.04, 0.25), duration: 0.28 }}
-              >
-                <CouponCard
-                  coupon={coupon}
-                  isRedeemed={isRedeemed(coupon.id)}
-                  onClick={() => setSelectedCoupon(coupon)}
-                />
+        {/* Gallery or Grid */}
+        <AnimatePresence mode="wait">
+          {viewMode === "gallery" ? (
+            <motion.div
+              key="gallery"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+            >
+              <GalleryView coupons={coupons} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="grid"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+            >
+              <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <AnimatePresence mode="popLayout">
+                  {filtered.map((coupon, i) => (
+                    <motion.div
+                      key={coupon.id}
+                      layout
+                      initial={{ opacity: 0, y: 14 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: Math.min(i * 0.04, 0.25), duration: 0.28 }}
+                    >
+                      <CouponCard
+                        coupon={coupon}
+                        isRedeemed={isRedeemed(coupon.id)}
+                        onClick={() => setSelectedCoupon(coupon)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
 
-        {filtered.length === 0 && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
-            <p className="font-display" style={{ fontSize: "2.8rem", color: "var(--pink-light)" }}>Sin cupones aquí</p>
-            <p className="font-serif mt-2" style={{ color: "var(--text-muted)" }}>No hay cupones en esta categoría</p>
-          </motion.div>
-        )}
+              {filtered.length === 0 && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+                  <p className="font-display" style={{ fontSize: "2.8rem", color: "var(--pink-light)" }}>Sin cupones aquí</p>
+                  <p className="font-serif mt-2" style={{ color: "var(--text-muted)" }}>No hay cupones en esta categoría</p>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Modal */}
